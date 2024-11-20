@@ -5,13 +5,18 @@ export class MergeView extends LitElement {
         :host {
             display: block;
             height: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
         .merge-view {
             height: 100%;
-            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
         }
         :host ::part(CodeMirror) {
             height: 100% !important;
+            width: auto !important;
+            position: absolute !important;
         }
         /* Ensure copy buttons are visible */
         :host .CodeMirror-merge-copy {
@@ -19,6 +24,30 @@ export class MergeView extends LitElement {
         }
         :host .CodeMirror-merge-copy-reverse {
             display: block !important;
+        }
+        /* Fix sizing of merge view wrapper */
+        :host .CodeMirror-merge {
+            height: 100%;
+        }
+        :host .CodeMirror-merge, 
+        :host .CodeMirror-merge .CodeMirror {
+            height: 100%;
+        }
+        :host .CodeMirror-merge-pane {
+            height: 100%;
+        }
+        :host .CodeMirror-merge-r-chunk { 
+            background: #ffd7d7;
+        }
+        :host .CodeMirror-merge-r-chunk-start {
+            border-top: 1px solid #faa;
+        }
+        :host .CodeMirror-merge-r-chunk-end {
+            border-bottom: 1px solid #faa;
+        }
+        :host .CodeMirror-merge-r-connect {
+            fill: #ffd7d7;
+            stroke: #faa;
         }
     `;
 
@@ -34,6 +63,14 @@ export class MergeView extends LitElement {
         this.mergeView = null;
         this._ignoreLeftChange = false;
         this._ignoreRightChange = false;
+        this._resizeObserver = null;
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this._resizeObserver) {
+            this._resizeObserver.disconnect();
+        }
     }
 
     createRenderRoot() {
@@ -59,6 +96,32 @@ export class MergeView extends LitElement {
             return;
         }
         this.initializeMergeView();
+        this.setupResizeObserver();
+    }
+
+    setupResizeObserver() {
+        // Create ResizeObserver to handle container size changes
+        this._resizeObserver = new ResizeObserver(() => {
+            if (this.mergeView) {
+                this.mergeView.edit.refresh();
+                this.mergeView.right.edit.refresh();
+                
+                // Force recomputation of merge view layout
+                const wrapper = this.shadowRoot.querySelector('.CodeMirror-merge');
+                if (wrapper) {
+                    wrapper.style.height = '100%';
+                    this.mergeView.edit.setSize(null, '100%');
+                    this.mergeView.right.edit.setSize(null, '100%');
+                }
+            }
+        });
+
+        // Observe both the host element and the merge-view container
+        this._resizeObserver.observe(this);
+        const mergeViewElement = this.shadowRoot.querySelector('.merge-view');
+        if (mergeViewElement) {
+            this._resizeObserver.observe(mergeViewElement);
+        }
     }
 
     updated(changedProperties) {
@@ -102,13 +165,9 @@ export class MergeView extends LitElement {
             const cmElements = this.shadowRoot.querySelectorAll('.CodeMirror');
             cmElements.forEach(el => el.setAttribute('part', 'CodeMirror'));
 
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                if (this.mergeView) {
-                    this.mergeView.edit.refresh();
-                    this.mergeView.right.edit.refresh();
-                }
-            });
+            // Initial size adjustment
+            this.mergeView.edit.setSize(null, '100%');
+            this.mergeView.right.edit.setSize(null, '100%');
 
             // Add change handlers to keep properties in sync
             this.mergeView.edit.on('change', () => {
