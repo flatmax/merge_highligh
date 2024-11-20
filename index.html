@@ -28,9 +28,18 @@
             min-height: 0; /* Important for Firefox */
         }
     </style>
-    <!-- Load CodeMirror dependencies first -->
+    <!-- Load CodeMirror and its dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <!-- Load mode-meta first for autodetection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/meta.min.js"></script>
+    <!-- Common language modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <!-- Merge addon -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/merge/merge.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
 </head>
@@ -43,16 +52,15 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             const mergeView = document.getElementById('mergeView');
-            const leftText = `function example() {
-    console.log("Hello");
-    // This is a sample function
-    return true;
-}`;
-            const rightText = `function example() {
-    console.log("Hello World");
-    // This is an updated function
-    return false;
-}`;
+            // Test with Python code
+            const leftText = `def example():
+    print("Hello")
+    # This is a sample function
+    return True`;
+            const rightText = `def example():
+    print("Hello World")
+    # This is an updated function
+    return False`;
             mergeView.leftText = leftText;
             mergeView.rightText = rightText;
         });
