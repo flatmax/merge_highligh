@@ -64,6 +64,12 @@ export class MergeView extends LitElement {
         this._ignoreLeftChange = false;
         this._ignoreRightChange = false;
         this._resizeObserver = null;
+        this._resizeObserver = new ResizeObserver(() => {
+            if (this.mergeView) {
+                this.mergeView.edit.refresh();
+                this.mergeView.right.edit.refresh();
+            }
+        });
     }
 
     detectLanguage(code) {
@@ -172,6 +178,15 @@ export class MergeView extends LitElement {
                 mv.edit.setOption('mode', detectedMode);
                 mv.right.edit.setOption('mode', detectedMode);
             }
+        }
+    }
+
+    handleFileSelected(event) {
+        const { path, content } = event.detail;
+        this.leftText = content;
+        // Refresh the editor to update the content and mode
+        if (this.mergeView) {
+            this.mergeView.edit.refresh();
         }
     }
 
